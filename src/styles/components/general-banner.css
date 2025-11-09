@@ -1,0 +1,19 @@
+.general-banner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-items: center;
+  justify-content: space-evenly;
+
+  width: 99.8%;
+
+  margin: 0 auto;
+
+  margin-top: 10px;
+  border: solid black 1px;
+}
+
+.general-banner__headline{
+  margin-top:auto;
+  margin-bottom: auto;
+}

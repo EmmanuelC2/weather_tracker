@@ -1,0 +1,15 @@
+.locations-drop-down-container{
+    display: flex;
+    justify-content: center;
+    width: 50%;
+    margin-top: 20px;
+}
+.locations-drop-down-inner-container{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-items: center;
+    justify-content: center;
+    align-content: center;
+    width: 100%
+}

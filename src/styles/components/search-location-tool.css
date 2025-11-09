@@ -1,0 +1,18 @@
+.search-location-tool-container{
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px; 
+    margin-bottom: 20px;
+    margin-left: 5px;
+    background-color: lightgrey;
+    width:60px;
+    height:60px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.search-location-tool-img{
+    width: 60px;
+    height:60px;
+}

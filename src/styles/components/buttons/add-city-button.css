@@ -1,0 +1,13 @@
+.add-city-button-container{
+    margin-left: 10px;
+}
+
+
+.add-city-button-container button {
+    height: 40px;
+    background-color: lightgray;
+    border-radius: 5px;
+    color: black;
+    cursor: pointer;
+    width: 56px;
+}

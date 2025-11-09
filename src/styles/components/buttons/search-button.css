@@ -1,0 +1,12 @@
+.search-button-container{
+    margin-top: 20px;
+}
+
+.search-button-container button{
+    height: 40px;
+    background-color: lightgray;
+    border-radius:5px;
+    color: black;
+    cursor: pointer;
+    width: 56px;
+}

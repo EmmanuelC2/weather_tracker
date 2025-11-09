@@ -1,0 +1,117 @@
+import React, { useState, useEffect } from "react";
+import SearchButton from "./buttons/search-button";
+import { Autocomplete, TextField } from "@mui/material";
+
+const stateList = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware",
+    "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine",
+    "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada",
+    "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon",
+    "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia",
+    "Washington", "West Virginia", "Wisconsin", "Wyoming"]
+
+const countryList = ["afghanistan", "albania", "algeria", "american samoa", "andorra", "angola", "anguilla", "antarctica", "antigua and barbuda", "argentina", "armenia",
+    "aruba", "australia", "austria", "azerbaijan", "bahamas (the)", "bahrain", "bangladesh", "barbados", "belarus", "belgium", "belize", "benin", "bermuda", "bhutan",
+    "bolivia (plurinational state of)", "bonaire, sint eustatius and saba", "bosnia and herzegovina", "botswana", "bouvet island", "brazil", "british indian ocean territory (the)",
+    "brunei darussalam", "bulgaria", "burkina faso", "burundi", "cabo verde", "cambodia", "cameroon", "canada", "cayman islands (the)", "central african republic (the)", "chad", "chile",
+    "china", "christmas island", "cocos (keeling) islands (the)", "colombia", "comoros (the)", "congo (the democratic republic of the)", "congo (the)", "cook islands (the)", "costa rica",
+    "croatia", "cuba", "cura�ao", "cyprus", "czechia", "c�te d'ivoire", "denmark", "djibouti", "dominica", "dominican republic (the)", "ecuador", "egypt", "el salvador", "equatorial guinea",
+    "eritrea", "estonia", "eswatini", "ethiopia", "falkland islands (the) [malvinas]", "faroe islands (the)", "fiji", "finland", "france", "french guiana", "french polynesia", "french southern territories (the)",
+    "gabon", "gambia (the)", "georgia", "germany", "ghana", "gibraltar", "greece", "greenland", "grenada", "guadeloupe", "guam", "guatemala", "guernsey", "guinea", "guinea-bissau", "guyana",
+    "haiti", "heard island and mcdonald islands", "holy see (the)", "honduras", "hong kong", "hungary", "iceland", "india", "indonesia", "iran (islamic republic of)", "iraq", "ireland",
+    "isle of man", "israel", "italy", "jamaica", "japan", "jersey", "jordan", "kazakhstan", "kenya", "kiribati", "korea (the democratic people's republic of)", "korea (the republic of)",
+    "kuwait", "kyrgyzstan", "lao people's democratic republic (the)", "latvia", "lebanon", "lesotho", "liberia", "libya", "liechtenstein", "lithuania", "luxembourg", "macao", "madagascar",
+    "malawi", "malaysia", "maldives", "mali", "malta", "marshall islands (the)", "martinique", "mauritania", "mauritius", "mayotte", "mexico", "micronesia (federated states of)", "moldova (the republic of)",
+    "monaco", "mongolia", "montenegro", "montserrat", "morocco", "mozambique", "myanmar", "namibia", "nauru", "nepal", "netherlands (the)", "new caledonia", "new zealand", "nicaragua", "niger (the)", "nigeria",
+    "niue", "norfolk island", "northern mariana islands (the)", "norway", "oman", "pakistan", "palau", "palestine, state of", "panama", "papua new guinea", "paraguay", "peru", "philippines (the)", "pitcairn",
+    "poland", "portugal", "puerto rico", "qatar", "republic of north macedonia", "romania", "russian federation (the)", "rwanda", "r�union", "saint barth�lemy",
+    "saint helena, ascension and tristan da cunha", "saint kitts and nevis", "saint lucia", "saint martin (french part)", "saint pierre and miquelon",
+    "saint vincent and the grenadines", "samoa", "san marino", "sao tome and principe", "saudi arabia", "senegal", "serbia", "seychelles", "sierra leone",
+    "singapore", "sint maarten (dutch part)", "slovakia", "slovenia", "solomon islands", "somalia", "south africa", "south georgia and the south sandwich islands",
+    "south sudan", "spain", "sri lanka", "sudan (the)", "suriname", "svalbard and jan mayen", "sweden", "switzerland", "syrian arab republic", "taiwan (province of china)",
+    "tajikistan", "tanzania, united republic of", "thailand", "timor-leste", "togo", "tokelau", "tonga", "trinidad and tobago", "tunisia", "turkey", "turkmenistan", "turks and caicos islands (the)",
+    "tuvalu", "uganda", "ukraine", "united arab emirates (the)", "united kingdom of great britain and northern ireland (the)", "united states minor outlying islands (the)",
+    "united states of america (the)", "uruguay", "uzbekistan", "vanuatu", "venezuela (bolivarian republic of)", "viet nam", "virgin islands (british)", "virgin islands (u.s.)",
+    "wallis and futuna", "western sahara", "yemen", "zambia", "zimbabwe", "aland islands"]
+
+export const SearchInput = ({ coordinates, setCoordinates, weather, setWeather, setSearchOptions, setIsDataLoading, locations, setLocations, setSelectedLocation, setSearchToolOpen }) => {
+
+    const [city, setCity] = useState("");
+    const [state, setState] = useState("");
+    const [stateInput, setStateInput] = useState("");
+    const [country, setCountry] = useState("");
+    const [countryInput, setCountryInput] = useState("");
+    const [error, setError] = useState("");
+
+    let data = {
+        city,
+        setCity,
+        state,
+        setState,
+        stateInput,
+        setStateInput,
+        country,
+        setCountry,
+        countryInput,
+        setCountryInput,
+        error,
+        setError,
+        weather,
+        setWeather,
+        coordinates,
+        setCoordinates,
+        setSearchOptions,
+        setIsDataLoading,
+        locations,
+        setLocations,
+        setSelectedLocation,
+        setSearchToolOpen,
+    }
+
+    return (
+        <div className="input-outer-container">
+
+            {error ? <div>{error}</div> : <div></div>}
+            <div className="input-container">
+                <TextField value={city} onChange={(event) => {
+                    setCity(event.target.value);
+                }} label="City" />
+            </div>
+
+
+            <div className="input-container">
+                <Autocomplete
+                    disablePortal
+                    value={state}
+                    onChange={(e, newValue) => { setState(newValue) }}
+                    inputValue={stateInput}
+                    onInputChange={(e, newInputValue) => {
+                        setStateInput(newInputValue);
+                    }}
+                    options={stateList}
+                    sx={{ width: 222.43 }}
+                    renderInput={(params) => <TextField {...params} label="State (US Only)" />}
+                />
+            </div>
+
+            <div className="input-container">
+                <Autocomplete
+                    disablePortal
+                    value={country}
+                    onChange={(e, newValue) => { setCountry(newValue) }}
+                    inputValue={countryInput}
+                    onInputChange={(e, newInputValue) => {
+                        setCountryInput(newInputValue);
+                    }}
+                    options={countryList}
+                    sx={{ width: 222.43 }}
+                    renderInput={(params) => <TextField {...params} label="Country" />}
+                />
+            </div>
+
+            <SearchButton data={data} />
+
+        </div>
+    )
+}
+
+export default SearchInput;

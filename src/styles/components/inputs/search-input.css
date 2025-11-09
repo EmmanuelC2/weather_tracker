@@ -1,0 +1,11 @@
+.input-outer-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width:30%;
+    margin-top: 23px;
+}
+
+.input-container{
+    margin-top:10px;
+}

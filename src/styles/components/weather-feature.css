@@ -1,0 +1,29 @@
+.weather-feature-container{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 20px;
+    border: 1px solid black;
+}
+
+.input-city-outer-container{
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top:20px;
+}
+
+.input-city-label{
+    font-size:1.3rem;
+}
+
+.input-city-container{
+    display:flex; 
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20px;
+}
+
