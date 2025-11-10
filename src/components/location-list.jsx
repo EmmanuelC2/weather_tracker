@@ -1,96 +1,93 @@
-import React, { useState } from "react";
+import React from "react";
 import { RotatingLines } from "react-loader-spinner";
 import { getWeatherReport } from "../services/weather-service-api";
 
-export const LocationList = ({ setWeather, setDisplayDate, searchOptions, isDataLoading, currentLocation,setCurrentLocation}) => {
+/**
+ * Renders the list of geo-coded results returned from the manual search flow.
+ * Selecting an entry hydrates the weather state with the lat/lon pair from the lookup response.
+ */
+export const LocationList = ({
+  setWeather,
+  setDisplayDate,
+  searchOptions,
+  isDataLoading,
+  currentLocation,
+  setCurrentLocation,
+  locations,
+  setLocations,
+  setSelectedLocation,
+  setSearchToolOpen,
+}) => {
+  const handleChange = (event) => {
+    const location = event.target.value.split(",");
 
-    const handleChange = (event) => {
+    for (const option of searchOptions) {
+      const matchesOption =
+        option.name.trim() === location[0].trim() &&
+        option.state.trim() === location[1].trim() &&
+        option.country.trim() === location[2].trim();
 
-        let location = event.target.value.split(',');
-        let data;
+      if (!matchesOption) {
+        continue;
+      }
 
-        console.log("Called handleChange on location list: ");
-
-        for (let x of searchOptions) {
-
-            if (x.name.trim() === location[0].trim() && x.state.trim() === location[1].trim() && x.country.trim() === location[2].trim()) {
-
-                data = {
-                    coordinates: {
-                        lat: x.lat,
-                        lon: x.lon,
-                    },
-                    setDisplayDate,
-                    setWeather,
-                    currentLocation,
-                    setCurrentLocation,
-                    city: x.name.trim(),
-                };
-
-                getWeatherReport(data);
-                break;
-            }
-
-        }
+      getWeatherReport({
+        coordinates: {
+          lat: option.lat,
+          lon: option.lon,
+        },
+        setDisplayDate,
+        setWeather,
+        currentLocation,
+        setCurrentLocation,
+        locations,
+        setLocations,
+        setSelectedLocation,
+        setSearchToolOpen,
+        city: option.name.trim(),
+      });
+      break;
     }
+  };
 
-    return (
-        <div className="list-outer-container">
-            {searchOptions ?
-                (
-                    <div className="location-list-container">
+  if (!searchOptions) {
+    return <div className="list-outer-container" />;
+  }
 
-                        <label className="list-header">Click a Location to save: </label>
+  return (
+    <div className="list-outer-container">
+      <div className="location-list-container">
+        <label className="list-header">Click a Location to save: </label>
 
-                        {isDataLoading ?
-                            <ol className="unordered-list">
-                                <RotatingLines 
-                                    strokeColor="black"
-                                    strokeWidth="5"
-                                    animationDuration="0.75"
-                                    width="96"
-                                    visible={true}
-                                />
-                            </ol>
-
-                            :
-
-                            <ol className="unordered-list">
-
-                                {searchOptions.map((options, index) =>
-
-                                    <li className="location-list-items" key={index}>
-                                        <div className="location-list-button-container">
-                                            <input
-                                                className="location-list-button"
-                                                type="button"
-                                                value={[options.name + ", " + options.state + ", " + options.country]}
-                                                onClick={handleChange}
-                                            >
-                                            </input>
-                                        </div>
-                                    </li>
-
-                                )}
-
-                            </ol>
-
-                        }
-
-                    </div>
-
-                )
-                :
-                (
-                    <div>
-                    </div>
-                )
-
-            }
-
-
-        </div>
-    )
-}
+        {isDataLoading ? (
+          <ol className="unordered-list">
+            <RotatingLines
+              strokeColor="black"
+              strokeWidth="5"
+              animationDuration="0.75"
+              width="96"
+              visible={true}
+            />
+          </ol>
+        ) : (
+          <ol className="unordered-list">
+            {searchOptions.map((options, index) => (
+              <li className="location-list-items" key={index}>
+                <div className="location-list-button-container">
+                  <input
+                    className="location-list-button"
+                    type="button"
+                    value={[options.name + ", " + options.state + ", " + options.country]}
+                    onClick={handleChange}
+                  />
+                </div>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default LocationList;

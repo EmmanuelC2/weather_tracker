@@ -8,10 +8,22 @@ const apiKey = import.meta.env.VITE_WEATHER_KEY;
 const part = ["minutely", "hourly", "daily", "alerts"];
 const units = "imperial";
 
+/**
+ * Temporary fixture keeps the UI functional while backend credentials are unavailable.
+ * Replace with the real OpenWeather call below once environment variables are wired up.
+ */
 export const callWeatherAPI = async (search) => {
-  console.log("calling api");
+  if (!search) {
+    return {
+      data: null,
+      error: { message: "Missing coordinates" },
+    };
+  }
 
-  let fakedata = {
+  const latitude = Number(search.latitude ?? search.lat);
+  const longitude = Number(search.longitude ?? search.lon);
+
+  const fakeData = {
     lat: 36.31,
     lon: -119.35,
     timezone: "America/Chicago",
@@ -25,16 +37,17 @@ export const callWeatherAPI = async (search) => {
     wind_speed: 3.13,
     weather_main: "Clouds",
     weather_desc: "broken clouds",
-  }
-  let error = null;
-  return {
-    data: fakedata,
-    error,
+  };
+
+  if (!baseWeatherAPI || !apiKey || Number.isNaN(latitude) || Number.isNaN(longitude)) {
+    return {
+      data: fakeData,
+      error: null,
+    };
   }
 
-  /*
   const config = {
-    url: `${baseWeatherAPI}onecall?lat=${search.latitude.toFixed(2)}&lon=${search.longitude.toFixed(2)}&units=${units}&exclude=${part}&appid=${apiKey}`,
+    url: `${baseWeatherAPI}onecall?lat=${latitude.toFixed(2)}&lon=${longitude.toFixed(2)}&units=${units}&exclude=${part}&appid=${apiKey}`,
     method: "GET",
     headers: {
       "content-type": "application/json",
@@ -47,99 +60,118 @@ export const callWeatherAPI = async (search) => {
     data: data || null,
     error,
   };
-  */
 };
 
-//use coordinates already obtained from geo coords api to call weather api.
-export const getWeatherReport = async (userData) => {
+const computeDisplayDate = (weatherData) => {
+  const utcTime = new Date(0);
+  const utcSeconds = weatherData.current_time - weatherData.timezone_offset;
+  utcTime.setUTCSeconds(utcSeconds);
+  return utcTime.toLocaleString();
+};
 
+const buildSavedLocation = (city, weatherData) => ({
+  city,
+  lat: weatherData.lat,
+  lon: weatherData.lon,
+  timezone: weatherData.timezone,
+  timezone_offset: weatherData.timezone_offset,
+  current_time: weatherData.current_time,
+  sunrise: weatherData.sunrise,
+  sunset: weatherData.sunset,
+  temp: weatherData.temp,
+  clouds: weatherData.clouds,
+  visibility: weatherData.visibility,
+  wind_speed: weatherData.wind_speed,
+  weather_main: weatherData.weather_main,
+  weather_desc: weatherData.weather_desc,
+});
+
+const persistLocation = (userData, locationName, weatherData) => {
+  if (!Array.isArray(userData.locations) || !userData.setLocations) {
+    return;
+  }
+
+  const payload = buildSavedLocation(locationName, weatherData);
+
+  if (userData.locations.length === 0) {
+    userData.setLocations((existing) => [...existing, payload]);
+    return;
+  }
+
+  const duplicateExists = userData.locations.some((location) => location.city === payload.city);
+
+  if (duplicateExists) {
+    console.log("Location is already saved!");
+    return;
+  }
+
+  if (userData.locations.length < 5) {
+    userData.setLocations((existing) => [...existing, payload]);
+  } else {
+    console.log("Too many locations saved! Please remove a location to add more.");
+  }
+};
+
+/**
+ * Uses existing coordinates to hydrate the weather state and optionally persists
+ * the result as a saved location.
+ */
+export const getWeatherReport = async (userData) => {
   const { data, error } = await callWeatherAPI(userData.coordinates);
 
-  let utcTime = new Date(0);
-  let utcSecs = data.current_time - data.timezone_offset;
-  utcTime.setUTCSeconds(utcSecs);
-
-  if (data) {
-    userData.setWeather(data);
-    userData.setDisplayDate(utcTime.toLocaleString())
-    userData.setCurrentLocation(userData.city)
-    console.log(userData.currentLocation)
-    if (userData.currentLocation !== "") {
-      let info = {
-        city: userData.currentLocation,
-        lat: data.lat,
-        lon: data.lon,
-        timezone: data.timezone,
-        timezone_offset: data.timezone_offset,
-        current_time: data.current_time,
-        sunrise: data.sunrise,
-        sunset: data.sunset,
-        temp: data.temp,
-        clouds: data.clouds,
-        visibility: data.visibility,
-        wind_speed: data.wind_speed,
-        weather_main: data.weather_main,
-        weather_desc: data.weather_desc,
-      }
-
-      if (userData.locations[0] === undefined) {
-        userData.setLocations(x => [...x, info]);
-      } else {
-        for (let i = 0; i < userData.locations.length; i++) {
-          if (userData.locations[i].city === info.city) {
-            console.log("Location is already saved!");
-          }
-        }
-
-        if (userData.locations.length < 5) {
-          userData.setLocations(x => [...x, info]);
-        } else {
-          console.log("Too many locations saved! Please remove a location to add more.");
-        }
-      }
-      userData.setSelectedLocation(info.city);
-      userData.setAutoToolOpen(true);
-      userData.setSearchToolOpen(false);
-    }
+  if (error || !data) {
+    userData.setWeather?.(error ? error.message : "Unable to load weather data");
+    return;
   }
-  if (error) {
-    userData.setWeather(error.message);
-  }
-}
 
-//get geo codes from geo code api then geo location from openweather api using geo codes and then call weather api
+  const displayDate = computeDisplayDate(data);
+
+  userData.setWeather?.(data);
+  userData.setDisplayDate?.(displayDate);
+
+  const locationName = userData.city ?? userData.currentLocation ?? "";
+  if (locationName !== "") {
+    userData.setCurrentLocation?.(locationName);
+    persistLocation(userData, locationName, data);
+    userData.setSelectedLocation?.(locationName);
+  }
+
+  userData.setAutoToolOpen?.(true);
+  userData.setSearchToolOpen?.(false);
+};
+
+/**
+ * Manual search workflow: validate inputs, normalize them through the geo codes
+ * service, then request candidate locations from OpenWeather so the user can pick one.
+ */
 export const getWeatherReportTwo = async (userData) => {
-
-  if (userData.city.trim() !== "" || userData.country.trim() !== "") {
-
-    let list = {
-      city: userData.city,
-      state: userData.state,
-      country: userData.country
-    }
-
-    const { data, error } = await callGeoCodesAPI(list);
-
-    if (!error) {
-      list = {
-        city: userData.city,
-        state: data.state,
-        country: data.country,
-      }
-
-      await callGeoLocationAPI(list, userData.searchOptions, userData.setSearchOptions, userData.setIsDataLoading);
-
-      userData.setIsDataLoading(false);
-
-    } else {
-      console.log(error);
-    }
-
-
-  } else {
-
+  if (userData.city.trim() === "" && userData.country.trim() === "") {
     console.log("Error: Require City and Country! (US requires State)");
-
+    userData.setIsDataLoading?.(false);
+    return;
   }
 
-}
+  let list = {
+    city: userData.city,
+    state: userData.state,
+    country: userData.country,
+  };
+
+  const { data, error } = await callGeoCodesAPI(list);
+
+  if (error) {
+    console.log(error);
+    userData.setIsDataLoading?.(false);
+    return;
+  }
+
+  list = {
+    city: userData.city,
+    state: data.state,
+    country: data.country,
+  };
+
+  await callGeoLocationAPI(list, userData.searchOptions, userData.setSearchOptions, userData.setIsDataLoading);
+
+  userData.setIsDataLoading?.(false);
+};
